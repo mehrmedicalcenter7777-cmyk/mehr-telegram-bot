@@ -65,7 +65,7 @@ def build(llm, cfg, topics: TopicQueue, log=print) -> Post:
         audio, warning = None, ""
         try:
             audio = narrator.make_audio(
-                cfg.secrets.elevenlabs_api_key, cfg.secrets.elevenlabs_voice_id,
+                cfg.secrets.elevenlabs_api_key, el.get("voice_id") or cfg.secrets.elevenlabs_voice_id,
                 draft["audio_script"], el["model_id"], el["output_format"],
             )
             log(f"[4] Audio tayyor ({len(audio) // 1024} KB)")

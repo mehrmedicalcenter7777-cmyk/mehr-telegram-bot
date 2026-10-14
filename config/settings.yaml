@@ -30,6 +30,11 @@ models:
   image_aspect_ratio: "4:5"
 
 elevenlabs:
+  # Bo'sh bo'lsa GitHub'dagi VOCIE_ID secret'i ishlatiladi.
+  # Bepul tarifda faqat standart (Default) ovozlar ishlaydi, masalan:
+  #   Sarah  EXAVITQu4vr4xnSDxMaL (ayol)   Brian  nPczCjzI2devNBz1zQrb (erkak)
+  #   Alice  Xb7hH8MSUJpSbSDYk0k2 (ayol)   George JBFqnCBsd6RMkjVDRZzb (erkak)
+  voice_id: "EXAVITQu4vr4xnSDxMaL"
   model_id: "eleven_v3"
   output_format: "mp3_44100_128"
 
