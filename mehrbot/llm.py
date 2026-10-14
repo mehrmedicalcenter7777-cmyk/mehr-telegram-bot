@@ -82,6 +82,37 @@ class Gemini:
                 last_error = error
         raise last_error
 
+    def media_json(self, prompt: str, data: bytes, mime: str, system: str = ""):
+        """JSON answer about a video or other media file (uploaded via the Files API)."""
+        import io
+        uploaded = self.client.files.upload(file=io.BytesIO(data), config={"mime_type": mime})
+        for _ in range(60):
+            if str(getattr(uploaded.state, "name", uploaded.state)) != "PROCESSING":
+                break
+            time.sleep(5)
+            uploaded = self.client.files.get(name=uploaded.name)
+        try:
+            last_error = None
+            for model in list(self.text_models):
+                config = types.GenerateContentConfig(system_instruction=system or None, temperature=0.6)
+                for _ in range(3):
+                    try:
+                        raw = self._call(model, [uploaded, prompt], config).text or ""
+                    except errors.APIError as error:
+                        last_error = error
+                        self.log(f"{model} videoni o'qiy olmadi ({error.code}), keyingi model")
+                        break
+                    try:
+                        return extract_json(raw)
+                    except ValueError as error:
+                        last_error = error
+            raise last_error or RuntimeError("Video tahlil qilinmadi")
+        finally:
+            try:
+                self.client.files.delete(name=uploaded.name)
+            except Exception:
+                pass
+
     def image(self, prompt: str) -> bytes:
         config = types.GenerateContentConfig(
             response_modalities=["IMAGE"],

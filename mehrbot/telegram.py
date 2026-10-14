@@ -54,6 +54,20 @@ class Telegram:
             timeout=120,
         )
 
+    def send_video(self, chat_id, file_id: str, caption: str, buttons=None):
+        data = {"chat_id": chat_id, "video": file_id, "caption": caption, "parse_mode": "HTML"}
+        if buttons:
+            data["reply_markup"] = self._markup(buttons)
+        return self.call("sendVideo", data)
+
+    def download(self, file_id: str) -> bytes:
+        path = self.call("getFile", {"file_id": file_id})["file_path"]
+        url = self.base.replace("/bot", "/file/bot", 1) + path
+        response = requests.get(url, timeout=300)
+        if not response.ok:
+            raise TelegramError(f"getFile: fayl yuklab olinmadi ({response.status_code})")
+        return response.content
+
     def send_audio(self, chat_id, audio: bytes, title: str, performer: str, caption: str = ""):
         return self.call(
             "sendAudio",
@@ -76,9 +90,3 @@ class Telegram:
         if offset is not None:
             data["offset"] = offset
         return self.call("getUpdates", data, timeout=timeout + 15)
-
-    def skip_pending_updates(self) -> int:
-        """Drops old button presses so only presses on the new preview count."""
-        self.call("deleteWebhook", {"drop_pending_updates": "false"})
-        updates = self.get_updates(offset=-1, timeout=0)
-        return updates[-1]["update_id"] + 1 if updates else 0

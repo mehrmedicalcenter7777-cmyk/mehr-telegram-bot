@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 
 from . import history
-from .agents import illustrator, narrator, researcher, reviewer, writer
+from .agents import illustrator, narrator, researcher, reviewer, video_writer, writer
 
 MAX_REWRITES = 3
 
@@ -16,9 +16,11 @@ class Post:
     audio_script: str
     doctor: str
     sources: list
-    image: bytes
+    image: bytes | None
     audio: bytes | None
     warning: str = ""
+    kind: str = "photo"
+    video_file_id: str = ""
 
 
 @dataclass
@@ -79,3 +81,27 @@ def build(llm, cfg, topics: TopicQueue, log=print) -> Post:
             sources=draft.get("sources") or [], image=image, audio=audio, warning=warning,
         )
     raise RuntimeError("3 ta mavzu bo'yicha ham sifat nazoratidan o'tgan post tayyorlanmadi")
+
+
+def build_video(llm, cfg, tg, item: dict, log=print) -> Post:
+    """Post for a video the admin sent: the video itself plus a caption written from it."""
+    data = tg.download(item["file_id"])
+    log(f"[V] Video yuklab olindi ({len(data) // 1024} KB)")
+    feedback = ""
+    for attempt in range(1, MAX_REWRITES + 1):
+        draft = video_writer.write_caption(llm, cfg.settings, cfg.style, cfg.doctors, data,
+                                           item.get("mime_type", "video/mp4"), item.get("hint", ""), feedback)
+        log(f"[2] Video uchun post yozildi ({attempt}-urinish): {draft.get('title')}")
+        problems = reviewer.review(llm, cfg.settings, cfg.style, cfg.doctors, draft)
+        if not problems:
+            log("[5] Matn sifat nazoratidan o'tdi")
+            break
+        feedback = "\n".join(f"- {p}" for p in problems)
+        log(f"[5] Muammolar:\n{feedback}")
+    else:
+        raise RuntimeError("Video uchun sifatli post yozilmadi:\n" + feedback)
+    return Post(
+        topic={"topic": "video: " + draft.get("video_summary", "")[:80]}, title=draft.get("title", ""),
+        html=draft["post_html"], audio_script="", doctor=draft.get("doctor", ""), sources=[],
+        image=None, audio=None, kind="video", video_file_id=item["file_id"],
+    )

@@ -1,0 +1,38 @@
+name: Videolarni tekshirish
+
+on:
+  schedule:
+    # Har 15 daqiqada: botga video tashlangan bo'lsa, post yoziladi,
+    # 10 daqiqa adminga ko'rsatiladi va kanalga chiqadi.
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: kanal-post
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  videos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Videoni tekshirish va chiqarish
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_API }}
+          ADMIN_CHAT_ID: ${{ secrets.ADMIN_CHAT_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVEN_LABS_API }}
+          ELEVENLABS_VOICE_ID: ${{ secrets.VOCIE_ID }}
+        run: python -m mehrbot.main --mode videos
+      - name: Ma'lumotlarni saqlash
+        if: success()
+        run: scripts/save_data.sh

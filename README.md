@@ -22,6 +22,17 @@ Vaqt jadvali (GitHub Actions, `.github/workflows/post.yml`):
 - **8:00 / 12:00** oxirgi variant kanalga chiqadi.
 - Xato bo'lsa, admin botdan "⚠️" xabarini oladi.
 
+## Video postlar
+
+Botga video yuboring (20 MB gacha, izoh ixtiyoriy). Har 15 daqiqada ishlaydigan
+`.github/workflows/video.yml` videoni Gemini'ga ko'rsatadi, uning tagiga uslubdagi post yozadi
+va sifat nazoratidan o'tkazadi. Keyin postni adminga **🔄 Qayta ishlash** va **✅ Hozir chiqarish**
+tugmalari bilan yuboradi. Hech narsa bosilmasa, 10 daqiqadan keyin kanalga chiqadi.
+
+Har 15 daqiqalik tekshiruv oyiga ~3000 daqiqa sarflaydi. Shuning uchun repozitoriya **public**
+bo'lishi kerak: ochiq repozitoriyada GitHub Actions bepul va cheksiz. Secret'lar baribir hech kimga
+ko'rinmaydi.
+
 ## Sozlash (bir marta)
 
 GitHub'da: **Settings → Secrets and variables → Actions → New repository secret**.
@@ -56,7 +67,5 @@ Run workflow**, `mode = chat_id` ni tanlang. Natijada `ADMIN_CHAT_ID = 123456789
 
 ## Eslatma
 
-- Shaxsiy (private) repozitoriyada GitHub Actions oyiga 2000 daqiqa bepul.
-  Bu dastur kuniga taxminan 2 × 25 daqiqa, ya'ni oyiga ~1500 daqiqa sarflaydi.
 - GitHub jadvali ba'zan bir necha daqiqa kechikadi. Kechiksa ham admin postni
   kamida 5 daqiqa oldin oladi.

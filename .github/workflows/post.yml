@@ -12,7 +12,7 @@ on:
         description: "test = faqat menga yuborish, now = darhol kanalga, chat_id = ADMIN_CHAT_ID ni topish"
         type: choice
         default: test
-        options: [test, now, chat_id, models, probe, scheduled]
+        options: [test, now, videos, chat_id, models, probe, scheduled]
 
 concurrency:
   group: kanal-post
@@ -40,13 +40,6 @@ jobs:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVEN_LABS_API }}
           ELEVENLABS_VOICE_ID: ${{ secrets.VOCIE_ID }}
         run: python -m mehrbot.main --mode "${{ inputs.mode || 'scheduled' }}"
-      - name: Mavzular tarixini saqlash
-        if: success() && (inputs.mode == '' || inputs.mode == 'scheduled' || inputs.mode == 'now')
-        run: |
-          git config user.name "mehr-bot"
-          git config user.email "mehr-bot@users.noreply.github.com"
-          git add data/history.json
-          git diff --cached --quiet && exit 0
-          git commit -m "Post tarixi yangilandi"
-          for i in 1 2 3; do git pull --rebase && git push && exit 0; sleep 5; done
-          exit 1
+      - name: Ma'lumotlarni saqlash
+        if: success()
+        run: scripts/save_data.sh

@@ -11,6 +11,9 @@ POST = ("🫀 <b>QON BOSIMI</b>\n\nFakt.\n\n🔹 <b>Maslahat:</b> tuzni kamaytir
 
 
 class FakeLLM:
+    def media_json(self, prompt, data, mime, system=""):
+        return {"title": "Video", "post_html": POST, "doctor": "", "video_summary": "Shifokor maslahati"}
+
     def __init__(self):
         self.topics = 0
 
@@ -32,6 +35,8 @@ class FakeTelegram:
         self.sent = []
         self.presses = presses
         self.next_id = 0
+        self.last_buttons = None
+        self.inbox = []
 
     def call(self, method, data=None, files=None, timeout=60):
         return True
@@ -57,11 +62,18 @@ class FakeTelegram:
     def answer_callback(self, callback_id, text=""):
         pass
 
-    def skip_pending_updates(self):
-        return 1
+    def send_video(self, chat, file_id, caption, buttons=None):
+        return self._msg("video", chat, file_id)
+
+    def download(self, file_id):
+        return b"mp4"
 
     def get_updates(self, offset, timeout=25):
-        if self.presses:
+        offset = offset or 1
+        if self.inbox:
+            update = {"update_id": offset, "message": self.inbox.pop(0)}
+            return [update]
+        if self.presses and self.last_buttons:
             self.presses -= 1
             data = self.last_buttons[0][1]
             return [{"update_id": offset, "callback_query": {"id": "q", "data": data, "from": {"id": 42}}}]
@@ -96,3 +108,27 @@ def test_regenerate_uses_new_topic(monkeypatch, tmp_path):
     previews = [s for s in tg.sent if s[1] == "42" and s[0] == "photo"]
     assert len(previews) == 2
     assert history.load()[0]["topic"] == "Mavzu 1-1"
+
+
+def test_video_from_admin_is_posted(monkeypatch, tmp_path):
+    from mehrbot import videos
+    monkeypatch.setattr(history, "PATH", tmp_path / "history.json")
+    monkeypatch.setattr(videos, "PATH", tmp_path / "videos.json")
+    for name, value in [("TELEGRAM_BOT_TOKEN", "t"), ("ADMIN_CHAT_ID", "42"), ("GEMINI_API_KEY", "g"),
+                        ("ELEVENLABS_API_KEY", "e"), ("ELEVENLABS_VOICE_ID", "v")]:
+        monkeypatch.setenv(name, value)
+    cfg = config.load()
+    cfg.settings["preview_minutes_before"] = 0
+    tg = FakeTelegram(presses=0)
+    tg.inbox.append({"message_id": 5, "from": {"id": 42}, "video": {"file_id": "VID", "file_size": 1000}})
+    assert main.run_videos(cfg, FakeLLM(), tg) == 0
+    assert ("video", "@mehr_medical7", "VID") in tg.sent
+    assert videos.load() == []
+
+
+def test_oversized_video_is_rejected(monkeypatch, tmp_path):
+    from mehrbot import videos
+    monkeypatch.setattr(videos, "PATH", tmp_path / "videos.json")
+    tg = FakeTelegram(presses=0)
+    videos.accept(tg, "42", {"file_id": "BIG", "file_size": 50 * 1024 * 1024, "hint": ""})
+    assert videos.load() == [] and "20 MB" in tg.sent[0][2]
