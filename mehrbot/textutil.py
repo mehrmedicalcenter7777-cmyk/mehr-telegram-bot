@@ -8,6 +8,7 @@ CAPTION_LIMIT = 1024
 ALLOWED_TAGS = {"b", "strong", "i", "em", "u", "ins", "s", "strike", "del",
                 "a", "code", "pre", "blockquote", "tg-spoiler", "span"}
 CYRILLIC = re.compile(r"[Ѐ-ӿ]")
+TRIPLED = re.compile(r"\w*([a-zA-Z])\1\1\w*", re.IGNORECASE)
 TAG = re.compile(r"<\s*(/?)\s*([a-zA-Z0-9-]+)[^>]*>")
 
 
@@ -64,6 +65,9 @@ def mechanical_problems(post_html: str, limit: int = CAPTION_LIMIT) -> list[str]
         problems.append(f"Post juda uzun: {length} belgi (chegara {limit})")
     if CYRILLIC.search(visible_text(post_html)):
         problems.append("Postda kirill harflari bor, faqat lotin yozuvi bo'lishi kerak")
+    tripled = [m.group(0) for m in TRIPLED.finditer(visible_text(post_html))]
+    if tripled:
+        problems.append(f"Bir harf ketma-ket 3 marta yozilgan (imlo xatosi): {', '.join(tripled)}")
     if "#" in visible_text(post_html):
         problems.append("Xeshteg ishlatilmasligi kerak")
     return problems

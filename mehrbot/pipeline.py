@@ -17,7 +17,8 @@ class Post:
     doctor: str
     sources: list
     image: bytes
-    audio: bytes
+    audio: bytes | None
+    warning: str = ""
 
 
 @dataclass
@@ -61,14 +62,20 @@ def build(llm, cfg, topics: TopicQueue, log=print) -> Post:
         image = illustrator.make_image(llm, draft, cfg.settings, cfg.doctors, log)
         log(f"[3] Rasm tayyor ({len(image) // 1024} KB)")
         el = cfg.settings["elevenlabs"]
-        audio = narrator.make_audio(
-            cfg.secrets.elevenlabs_api_key, cfg.secrets.elevenlabs_voice_id,
-            draft["audio_script"], el["model_id"], el["output_format"],
-        )
-        log(f"[4] Audio tayyor ({len(audio) // 1024} KB)")
+        audio, warning = None, ""
+        try:
+            audio = narrator.make_audio(
+                cfg.secrets.elevenlabs_api_key, cfg.secrets.elevenlabs_voice_id,
+                draft["audio_script"], el["model_id"], el["output_format"],
+            )
+            log(f"[4] Audio tayyor ({len(audio) // 1024} KB)")
+        except Exception as error:
+            # A missing voice-over shouldn't stop the post; the admin is told why.
+            warning = f"Audio tayyorlanmadi: {str(error)[:300]}"
+            log(f"[4] {warning}")
         return Post(
             topic=topic, title=draft.get("title", ""), html=draft["post_html"],
             audio_script=draft["audio_script"], doctor=draft.get("doctor", ""),
-            sources=draft.get("sources") or [], image=image, audio=audio,
+            sources=draft.get("sources") or [], image=image, audio=audio, warning=warning,
         )
     raise RuntimeError("3 ta mavzu bo'yicha ham sifat nazoratidan o'tgan post tayyorlanmadi")

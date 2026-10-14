@@ -27,3 +27,9 @@ def test_detects_cyrillic_length_and_hashtags():
     assert any("kirill" in p for p in mechanical_problems("Привет"))
     assert any("uzun" in p for p in mechanical_problems("a" * 1100))
     assert any("Xeshteg" in p for p in mechanical_problems("#salomatlik"))
+
+
+def test_detects_tripled_letters():
+    problems = mechanical_problems("<b>TOMOQ OG'RIG'I ODDDIY SHAMOLLASHMI?</b>")
+    assert any("ODDDIY" in p for p in problems)
+    assert mechanical_problems("Ishtaha va uyqu") == []

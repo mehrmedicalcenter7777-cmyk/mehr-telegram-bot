@@ -30,7 +30,8 @@ def sleep_until(moment: datetime) -> None:
 
 def send_preview(tg: Telegram, admin, post, publish_at: datetime | None, token: str | None):
     tg.send_photo(admin, post.image, post.html)
-    tg.send_audio(admin, post.audio, post.title, "Mehr Medical")
+    if post.audio:
+        tg.send_audio(admin, post.audio, post.title, "Mehr Medical")
     sources = "\n".join(f"• {html.escape(str(s))}" for s in post.sources[:5])
     if publish_at:
         text = (f"⏰ Bu post <b>{publish_at:%H:%M}</b> da kanalga avtomatik chiqadi.\n"
@@ -39,6 +40,8 @@ def send_preview(tg: Telegram, admin, post, publish_at: datetime | None, token: 
         text = "🧪 Sinov posti. Kanalga chiqarilmaydi."
     if sources:
         text += f"\n\n📚 Manbalar:\n{sources}"
+    if post.warning:
+        text += f"\n\n⚠️ {html.escape(post.warning)}"
     buttons = [(REGEN_BUTTON, f"regen:{token}")] if token else None
     return tg.send_message(admin, text, buttons)
 
@@ -46,7 +49,8 @@ def send_preview(tg: Telegram, admin, post, publish_at: datetime | None, token: 
 def publish(tg: Telegram, cfg, post) -> None:
     channel = cfg.settings["channel_id"]
     tg.send_photo(channel, post.image, post.html)
-    tg.send_audio(channel, post.audio, post.title, cfg.settings["channel_name"])
+    if post.audio:
+        tg.send_audio(channel, post.audio, post.title, cfg.settings["channel_name"])
 
 
 def is_regen(update: dict, admin: str, token: str) -> bool:
