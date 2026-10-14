@@ -18,8 +18,14 @@ preview_minutes_before: 10
 
 language: "o'zbek tili, lotin yozuvi"
 
+# Gemini to'lovsiz (bepul) kalitda internet qidiruvi va AI rasm ishlamaydi.
+# Bunday holda dastur o'zi qidiruvsiz yozadi va rasm o'rniga klinika kartasini chizadi.
+web_search: true
+image_mode: "ai"        # "ai" = Nano Banana rasmi, "card" = doim klinika kartasi
+
 models:
-  text: "gemini-3.8-flash"
+  # Birinchisi ishlamasa (limit, yopilgan model), keyingisi ishlatiladi
+  text: ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]
   image: "gemini-3.1-flash-image"   # "Nano Banana 2"
   image_aspect_ratio: "4:5"
 

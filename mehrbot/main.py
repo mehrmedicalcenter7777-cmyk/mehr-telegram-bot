@@ -188,7 +188,7 @@ def main() -> int:
     cfg = config.load()
     s = cfg.settings
     llm = Gemini(cfg.secrets.gemini_api_key, s["models"]["text"], s["models"]["image"],
-                 s["models"].get("image_aspect_ratio", "1:1"))
+                 s["models"].get("image_aspect_ratio", "1:1"), web_search=s.get("web_search", True), log=log)
     tg = Telegram(cfg.secrets.telegram_token)
     try:
         if args.mode == "scheduled":

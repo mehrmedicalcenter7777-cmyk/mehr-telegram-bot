@@ -58,7 +58,7 @@ def build(llm, cfg, topics: TopicQueue, log=print) -> Post:
             log("[5] Bu mavzu bo'yicha sifatli post chiqmadi, keyingi mavzu olinadi")
             continue
 
-        image = illustrator.make_image(llm, draft)
+        image = illustrator.make_image(llm, draft, cfg.settings, cfg.doctors, log)
         log(f"[3] Rasm tayyor ({len(image) // 1024} KB)")
         el = cfg.settings["elevenlabs"]
         audio = narrator.make_audio(
