@@ -149,12 +149,37 @@ def show_models() -> int:
     return 0
 
 
+def probe_models() -> int:
+    """Tries a tiny request on candidate models to see which ones the key's quota allows."""
+    from google import genai
+    from google.genai import types
+    client = genai.Client(api_key=config._env("GEMINI_API_KEY"))
+    search = types.GenerateContentConfig(tools=[types.Tool(google_search=types.GoogleSearch())])
+    image = types.GenerateContentConfig(response_modalities=["IMAGE"])
+    checks = [(m, None, "matn") for m in ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite",
+                                          "gemini-3.1-flash-lite", "gemini-flash-latest",
+                                          "gemini-flash-lite-latest", "gemini-2.5-flash-lite"]]
+    checks += [(m, search, "matn+qidiruv") for m in ["gemini-3.8-flash", "gemini-3.5-flash-lite",
+                                                     "gemini-3.1-flash-lite", "gemini-flash-lite-latest"]]
+    checks += [(m, image, "rasm") for m in ["gemini-3.1-flash-lite-image", "gemini-3.1-flash-image",
+                                            "gemini-2.5-flash-image", "gemini-nano-banana-2.1"]]
+    for model, cfg, kind in checks:
+        try:
+            client.models.generate_content(model=model, contents="Salom, bitta so'z bilan javob ber." if kind != "rasm" else "A red apple on a white table", config=cfg)
+            log(f"PROBE OK    {kind:13} {model}")
+        except Exception as error:
+            log(f"PROBE FAIL  {kind:13} {model}: {str(error)[:90]}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", default="scheduled", choices=["scheduled", "test", "now", "chat_id", "models"])
+    parser.add_argument("--mode", default="scheduled", choices=["scheduled", "test", "now", "chat_id", "models", "probe"])
     parser.add_argument("--slot", help="post vaqtini majburan berish, masalan 08:00")
     args = parser.parse_args()
 
+    if args.mode == "probe":
+        return probe_models()
     if args.mode == "models":
         return show_models()
     if args.mode == "chat_id":

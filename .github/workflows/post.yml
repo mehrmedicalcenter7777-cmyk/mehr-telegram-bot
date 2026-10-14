@@ -12,7 +12,7 @@ on:
         description: "test = faqat menga yuborish, now = darhol kanalga, chat_id = ADMIN_CHAT_ID ni topish"
         type: choice
         default: test
-        options: [test, now, chat_id, models, scheduled]
+        options: [test, now, chat_id, models, probe, scheduled]
 
 concurrency:
   group: kanal-post
