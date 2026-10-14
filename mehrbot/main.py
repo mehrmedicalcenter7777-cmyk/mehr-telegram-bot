@@ -8,8 +8,9 @@ import time
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from . import config, history, schedule, videos
+from . import config, history, inbox, schedule, videos
 from .llm import Gemini
+from .agents import illustrator
 from .pipeline import TopicQueue, build, build_video
 from .telegram import Telegram
 
@@ -72,7 +73,7 @@ def button_action(update: dict, admin: str, token: str) -> str | None:
     return action if pressed == token else None
 
 
-def review_window(tg, cfg, post, publish_at: datetime, offset: int, rebuild, allow_now: bool = False):
+def review_window(tg, llm, cfg, post, publish_at: datetime, offset: int, rebuild, allow_now: bool = False):
     """Shows the post to the admin and waits until publish_at, handling the buttons.
     Videos sent meanwhile are queued. Returns the post to publish and the notice message."""
     admin = cfg.secrets.admin_chat_id
@@ -83,9 +84,7 @@ def review_window(tg, cfg, post, publish_at: datetime, offset: int, rebuild, all
         wait = int(min(25, max(1, (publish_at - datetime.now(tz)).total_seconds())))
         for update in tg.get_updates(offset, timeout=wait):
             offset = update["update_id"] + 1
-            item = videos.extract(update, admin)
-            if item:
-                videos.accept(tg, admin, item)
+            if inbox.handle(update, tg, llm, cfg):
                 continue
             query = update.get("callback_query")
             if not query:
@@ -120,17 +119,34 @@ def run_scheduled(cfg, llm, tg, slot_override: str | None) -> int:
     log(f"Post vaqti: {slot:%Y-%m-%d %H:%M}")
 
     admin = cfg.secrets.admin_chat_id
-    topics = TopicQueue(llm, cfg, today=f"{now:%Y-%m-%d}")
+    offset = inbox.collect(tg, llm, cfg)
+    state = inbox.load_state()
+    slot_key = f"{slot:%Y-%m-%d %H:%M}"
+    if slot_key in state["skip"]:
+        state["skip"].remove(slot_key)
+        inbox.save_state(state)
+        tg.send_message(admin, f"⏭ {slot:%H:%M} dagi post sizning buyrug'ingiz bilan o'tkazib yuborildi.")
+        log("Admin bu postni o'tkazib yuborishni so'ragan.")
+        return 0
+    fixed = (state["topic"] or {}).get("text", "")
+    topics = TopicQueue(llm, cfg, today=f"{now:%Y-%m-%d}", fixed=fixed)
     post = build(llm, cfg, topics, log)
 
     preview_at, publish_at = schedule.plan(datetime.now(tz), slot, cfg.settings["preview_minutes_before"])
     log(f"Ko'rib chiqish uchun yuboriladi: {preview_at:%H:%M}, kanalga: {publish_at:%H:%M}")
     sleep_until(preview_at)
 
-    offset = videos.collect(tg, admin)
-    post, notice = review_window(tg, cfg, post, publish_at, offset, lambda: build(llm, cfg, topics, log))
+    offset = inbox.collect(tg, llm, cfg, offset)
+    post, notice = review_window(tg, llm, cfg, post, publish_at, offset, lambda: build(llm, cfg, topics, log))
 
     publish(tg, cfg, post)
+    if fixed:
+        state = inbox.load_state()
+        if state["topic"] and state["topic"]["text"] == fixed:
+            state["topic"]["remaining"] -= 1
+            if state["topic"]["remaining"] <= 0:
+                state["topic"] = None
+            inbox.save_state(state)
     tg.edit_text(admin, notice["message_id"], f"✅ Post kanalga chiqdi ({datetime.now(tz):%H:%M}).")
     history.add({
         "date": f"{slot:%Y-%m-%d %H:%M}", "title": post.title,
@@ -140,32 +156,58 @@ def run_scheduled(cfg, llm, tg, slot_override: str | None) -> int:
     return 0
 
 
-def run_videos(cfg, llm, tg) -> int:
-    """Checks the bot for videos; posts the first queued one after a 10-minute preview."""
-    admin = cfg.secrets.admin_chat_id
+def publish_after_review(tg, llm, cfg, post, offset: int, rebuild, label: str) -> None:
     tz = ZoneInfo(cfg.settings["timezone"])
-    offset = videos.collect(tg, admin)
-    queue = videos.load()
-    if not queue:
-        log("Yangi video yo'q.")
-        return 0
-    item = queue[0]
-    try:
-        post = build_video(llm, cfg, tg, item, log)
-    except Exception as error:
-        videos.remove(item["file_id"])
-        tg.send_message(admin, f"⚠️ Videoga post yozib bo'lmadi:\n<code>{html.escape(str(error))[:600]}</code>")
-        raise
     publish_at = datetime.now(tz) + timedelta(minutes=cfg.settings["preview_minutes_before"])
-    post, notice = review_window(tg, cfg, post, publish_at, offset,
-                                 lambda: build_video(llm, cfg, tg, item, log), allow_now=True)
+    post, notice = review_window(tg, llm, cfg, post, publish_at, offset, rebuild, allow_now=True)
     publish(tg, cfg, post)
-    videos.remove(item["file_id"])
-    tg.edit_text(admin, notice["message_id"], f"✅ Video kanalga chiqdi ({datetime.now(tz):%H:%M}).")
+    tg.edit_text(cfg.secrets.admin_chat_id, notice["message_id"],
+                 f"✅ {label} kanalga chiqdi ({datetime.now(tz):%H:%M}).")
     history.add({"date": f"{datetime.now(tz):%Y-%m-%d %H:%M}", "title": post.title,
                  "topic": post.topic.get("topic"), "doctor": post.doctor},
                 keep=cfg.settings.get("history_size", 120))
-    log("Video kanalga chiqdi.")
+    log(f"{label} kanalga chiqdi.")
+
+
+def run_inbox(cfg, llm, tg) -> int:
+    """Handles what the admin sent the bot: one queued video or command per run."""
+    admin = cfg.secrets.admin_chat_id
+    tz = ZoneInfo(cfg.settings["timezone"])
+    offset = inbox.collect(tg, llm, cfg)
+
+    queue = videos.load()
+    if queue:
+        item = queue[0]
+        videos.remove(item["file_id"])
+        try:
+            post = build_video(llm, cfg, tg, item, log)
+        except Exception as error:
+            tg.send_message(admin, f"⚠️ Videoga post yozib bo'lmadi:\n<code>{html.escape(str(error))[:600]}</code>")
+            raise
+        publish_after_review(tg, llm, cfg, post, offset, lambda: build_video(llm, cfg, tg, item, log), "Video")
+        return 0
+
+    state = inbox.load_state()
+    if not state["requests"]:
+        log("Yangi video yoki buyruq yo'q.")
+        return 0
+    request = state["requests"].pop(0)
+    inbox.save_state(state)
+
+    if request["kind"] == "image":
+        try:
+            image = llm.image(f"{request['text']}\n\nStyle: {illustrator.STYLE}")
+        except Exception as error:
+            log(f"Rasm chizilmadi: {error}")
+            tg.send_message(admin, "⚠️ AI rasm chizib bo'lmadi. Bepul Gemini kalitida rasm yaratish limiti yo'q, "
+                                   "buning uchun Google AI Studio'da to'lov (billing) yoqilishi kerak.")
+            return 0
+        tg.send_photo(admin, image, f"🎨 {html.escape(request['text'][:900])}")
+        return 0
+
+    topics = TopicQueue(llm, cfg, today=f"{datetime.now(tz):%Y-%m-%d}", fixed=request["text"])
+    post = build(llm, cfg, topics, log)
+    publish_after_review(tg, llm, cfg, post, offset, lambda: build(llm, cfg, topics, log), "Post")
     return 0
 
 
@@ -256,7 +298,7 @@ def main() -> int:
         if args.mode == "scheduled":
             return run_scheduled(cfg, llm, tg, args.slot)
         if args.mode == "videos":
-            return run_videos(cfg, llm, tg)
+            return run_inbox(cfg, llm, tg)
         return run_once(cfg, llm, tg, to_channel=args.mode == "now")
     except Exception as error:
         log(f"XATO: {error!r}")

@@ -55,20 +55,3 @@ def accept(tg, admin, item: dict) -> None:
     save(queue + [item])
     tg.send_message(admin, "✅ Video qabul qilindi. Unga post yozilib, eng yaqin post vaqtida "
                            "(8:00 yoki 12:00) kanalga chiqadi. 10 daqiqa oldin sizga ko'rsatiladi.")
-
-
-def collect(tg, admin, offset: int | None = None) -> int:
-    """Reads every pending update: queues admin videos, expires old buttons.
-    Returns the offset after the last update."""
-    tg.call("deleteWebhook", {"drop_pending_updates": "false"})
-    while True:
-        updates = tg.get_updates(offset, timeout=0)
-        if not updates:
-            return offset or 0
-        for update in updates:
-            offset = update["update_id"] + 1
-            item = extract(update, admin)
-            if item:
-                accept(tg, admin, item)
-            elif update.get("callback_query"):
-                tg.answer_callback(update["callback_query"]["id"], "Bu tugma eskirgan")

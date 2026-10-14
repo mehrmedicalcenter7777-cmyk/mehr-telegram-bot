@@ -33,6 +33,18 @@ Har 15 daqiqalik tekshiruv oyiga ~3000 daqiqa sarflaydi. Shuning uchun repozitor
 bo'lishi kerak: ochiq repozitoriyada GitHub Actions bepul va cheksiz. Secret'lar baribir hech kimga
 ko'rinmaydi.
 
+## Botga buyruqlar
+
+Botga oddiy o'zbekcha yozing, Gemini buyruqni tushunadi (15 daqiqa ichida):
+
+- *Hozir diabet haqida post chiqar*: post yozadi, 10 daqiqa ko'rsatadi, chiqaradi
+- *Ertangi postlar gripp haqida bo'lsin*: keyingi kunlik postlar mavzusi
+- *Bugun 12:00 da post chiqarma* / *... chiqaraver*: kunlik postni o'tkazish yoki qaytarish
+- *Yurak haqida rasm chiz*: AI rasm (Gemini to'lovi yoqilgan bo'lsa)
+- *Holat*: navbat va jadval
+
+Buyruqlar holati `data/state.json` da saqlanadi.
+
 ## Sozlash (bir marta)
 
 GitHub'da: **Settings → Secrets and variables → Actions → New repository secret**.

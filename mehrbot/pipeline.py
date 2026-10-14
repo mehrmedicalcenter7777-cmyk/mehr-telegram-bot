@@ -31,8 +31,13 @@ class TopicQueue:
     today: str
     used: list = field(default_factory=list)
     queue: list = field(default_factory=list)
+    fixed: str = ""  # admin-chosen topic: every variant is about it
 
     def next(self) -> dict:
+        if self.fixed:
+            angle = "boshqa jihatdan, oldingi variantdan farqli" if self.used else ""
+            self.used.append(self.fixed)
+            return {"topic": self.fixed, "angle": angle}
         if not self.queue:
             past = [p.get("title", "") for p in history.load()] + self.used
             self.queue = researcher.find_topics(self.llm, self.cfg.settings, self.cfg.doctors, past, self.today)

@@ -11,6 +11,7 @@ POST = ("🫀 <b>QON BOSIMI</b>\n\nFakt.\n\n🔹 <b>Maslahat:</b> tuzni kamaytir
 
 
 class FakeLLM:
+    command = {"action": "unknown"}
     def media_json(self, prompt, data, mime, system=""):
         return {"title": "Video", "post_html": POST, "doctor": "", "video_summary": "Shifokor maslahati"}
 
@@ -18,6 +19,8 @@ class FakeLLM:
         self.topics = 0
 
     def json(self, prompt, system="", search=False, temperature=0.7):
+        if "Buyruqni" in prompt:
+            return self.command
         if "JSON massiv" in prompt:
             self.topics += 1
             return [{"topic": f"Mavzu {self.topics}-{i}"} for i in range(3)]
@@ -80,8 +83,18 @@ class FakeTelegram:
         return []
 
 
-def run(monkeypatch, tmp_path, presses):
+def isolate(monkeypatch, tmp_path):
+    from mehrbot import inbox, videos
     monkeypatch.setattr(history, "PATH", tmp_path / "history.json")
+    monkeypatch.setattr(videos, "PATH", tmp_path / "videos.json")
+    monkeypatch.setattr(inbox, "STATE", tmp_path / "state.json")
+    for name, value in [("TELEGRAM_BOT_TOKEN", "t"), ("ADMIN_CHAT_ID", "42"), ("GEMINI_API_KEY", "g"),
+                        ("ELEVENLABS_API_KEY", "e"), ("ELEVENLABS_VOICE_ID", "v")]:
+        monkeypatch.setenv(name, value)
+
+
+def run(monkeypatch, tmp_path, presses):
+    isolate(monkeypatch, tmp_path)
     monkeypatch.setattr(narrator, "make_audio", lambda *a, **k: b"mp3")
     monkeypatch.setattr(main, "sleep_until", lambda moment: None)
     # Publish window already over after one poll: plan() returns a time in the past.
@@ -112,16 +125,12 @@ def test_regenerate_uses_new_topic(monkeypatch, tmp_path):
 
 def test_video_from_admin_is_posted(monkeypatch, tmp_path):
     from mehrbot import videos
-    monkeypatch.setattr(history, "PATH", tmp_path / "history.json")
-    monkeypatch.setattr(videos, "PATH", tmp_path / "videos.json")
-    for name, value in [("TELEGRAM_BOT_TOKEN", "t"), ("ADMIN_CHAT_ID", "42"), ("GEMINI_API_KEY", "g"),
-                        ("ELEVENLABS_API_KEY", "e"), ("ELEVENLABS_VOICE_ID", "v")]:
-        monkeypatch.setenv(name, value)
+    isolate(monkeypatch, tmp_path)
     cfg = config.load()
     cfg.settings["preview_minutes_before"] = 0
     tg = FakeTelegram(presses=0)
     tg.inbox.append({"message_id": 5, "from": {"id": 42}, "video": {"file_id": "VID", "file_size": 1000}})
-    assert main.run_videos(cfg, FakeLLM(), tg) == 0
+    assert main.run_inbox(cfg, FakeLLM(), tg) == 0
     assert ("video", "@mehr_medical7", "VID") in tg.sent
     assert videos.load() == []
 
@@ -132,3 +141,40 @@ def test_oversized_video_is_rejected(monkeypatch, tmp_path):
     tg = FakeTelegram(presses=0)
     videos.accept(tg, "42", {"file_id": "BIG", "file_size": 50 * 1024 * 1024, "hint": ""})
     assert videos.load() == [] and "20 MB" in tg.sent[0][2]
+
+
+def test_post_now_command_publishes_on_requested_topic(monkeypatch, tmp_path):
+    isolate(monkeypatch, tmp_path)
+    monkeypatch.setattr(narrator, "make_audio", lambda *a, **k: b"mp3")
+    cfg = config.load()
+    cfg.settings["preview_minutes_before"] = 0
+    llm = FakeLLM()
+    llm.command = {"action": "post_now", "topic": "Diabet"}
+    tg = FakeTelegram(presses=0)
+    tg.inbox.append({"message_id": 7, "from": {"id": 42}, "text": "Hozir diabet haqida post chiqar"})
+    assert main.run_inbox(cfg, llm, tg) == 0
+    assert [s[0] for s in tg.sent if s[1] == "@mehr_medical7"] == ["photo", "audio"]
+    assert history.load()[0]["topic"] == "Diabet"
+
+
+def test_skip_command_stops_scheduled_post(monkeypatch, tmp_path):
+    from mehrbot import inbox
+    isolate(monkeypatch, tmp_path)
+    cfg = config.load()
+    now = datetime.now(ZoneInfo(cfg.settings["timezone"]))
+    slot = (now + timedelta(minutes=30)).replace(second=0, microsecond=0)
+    inbox.save_state({"requests": [], "topic": None, "skip": [f"{slot:%Y-%m-%d %H:%M}"]})
+    tg = FakeTelegram(presses=0)
+    assert main.run_scheduled(cfg, FakeLLM(), tg, f"{slot:%H:%M}") == 0
+    assert not [s for s in tg.sent if s[1] == "@mehr_medical7"]
+    assert inbox.load_state()["skip"] == []
+
+
+def test_unknown_message_gets_help(monkeypatch, tmp_path):
+    from mehrbot import inbox
+    isolate(monkeypatch, tmp_path)
+    cfg = config.load()
+    tg = FakeTelegram(presses=0)
+    tg.inbox.append({"message_id": 8, "from": {"id": 42}, "text": "salom"})
+    inbox.collect(tg, FakeLLM(), cfg)
+    assert "tushunaman" in tg.sent[-1][2]
