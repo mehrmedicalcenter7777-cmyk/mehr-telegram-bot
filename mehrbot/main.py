@@ -138,12 +138,25 @@ def show_chat_ids(tg) -> int:
     return 0
 
 
+def show_models() -> int:
+    """Prints Gemini models available to this API key."""
+    from google import genai
+    client = genai.Client(api_key=config._env("GEMINI_API_KEY"))
+    for model in client.models.list():
+        actions = getattr(model, "supported_actions", None) or []
+        if "generateContent" in actions:
+            log(f"MODEL {model.name}  ({model.display_name})")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", default="scheduled", choices=["scheduled", "test", "now", "chat_id"])
+    parser.add_argument("--mode", default="scheduled", choices=["scheduled", "test", "now", "chat_id", "models"])
     parser.add_argument("--slot", help="post vaqtini majburan berish, masalan 08:00")
     args = parser.parse_args()
 
+    if args.mode == "models":
+        return show_models()
     if args.mode == "chat_id":
         return show_chat_ids(Telegram(config._env("TELEGRAM_BOT_TOKEN")))
 
