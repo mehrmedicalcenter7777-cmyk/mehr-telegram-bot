@@ -19,8 +19,8 @@ preview_minutes_before: 10
 language: "o'zbek tili, lotin yozuvi"
 
 models:
-  text: "gemini-2.5-flash"
-  image: "gemini-2.5-flash-image"   # "Nano Banana"
+  text: "gemini-3.8-flash"
+  image: "gemini-3.1-flash-image"   # "Nano Banana 2"
   image_aspect_ratio: "4:5"
 
 elevenlabs:
