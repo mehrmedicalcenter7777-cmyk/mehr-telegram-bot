@@ -9,7 +9,7 @@ rubric: >
 channel_id: "@mehr_medical7"
 channel_name: "MEHR MEDICAL"
 clinic_name: "Mehr Medical Center"
-clinic_phone: ""        # masalan: "+998 90 123 45 67"
+clinic_phone: "+998 91 000 03 03"
 clinic_address: ""      # masalan: "Toshkent sh., ... ko'chasi, 12"
 
 timezone: "Asia/Tashkent"
