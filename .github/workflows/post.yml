@@ -34,11 +34,11 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Post tayyorlash va chiqarish
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_API }}
           ADMIN_CHAT_ID: ${{ secrets.ADMIN_CHAT_ID }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
-          ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVEN_LABS_API }}
+          ELEVENLABS_VOICE_ID: ${{ secrets.VOCIE_ID }}
         run: python -m mehrbot.main --mode "${{ inputs.mode || 'scheduled' }}"
       - name: Mavzular tarixini saqlash
         if: success() && (inputs.mode == '' || inputs.mode == 'scheduled' || inputs.mode == 'now')

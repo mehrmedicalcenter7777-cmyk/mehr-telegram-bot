@@ -29,10 +29,10 @@ Quyidagi 5 ta secret qo'shiladi:
 
 | Nomi | Qayerdan olinadi |
 |---|---|
-| `TELEGRAM_BOT_TOKEN` | @BotFather bergan token |
+| `TELEGRAM_BOT_API` | @BotFather bergan token |
 | `GEMINI_API_KEY` | https://aistudio.google.com/apikey |
-| `ELEVENLABS_API_KEY` | elevenlabs.io → Profile → API Keys |
-| `ELEVENLABS_VOICE_ID` | elevenlabs.io → Voices → ovoz → "Copy voice ID" |
+| `ELEVEN_LABS_API` | elevenlabs.io → Profile → API Keys |
+| `VOCIE_ID` | elevenlabs.io → Voices → ovoz → "Copy voice ID" |
 | `ADMIN_CHAT_ID` | Pastdagi "chat_id" ishga tushirish orqali |
 
 `ADMIN_CHAT_ID` ni topish: botni oching va **/start** bosing. Keyin **Actions → Kanalga post →
