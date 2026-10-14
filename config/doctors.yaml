@@ -1,0 +1,33 @@
+# Mehr Medical Center shifokorlari.
+# Post mavzusiga mos shifokor shu ro'yxatdan tanlanadi.
+# Ro'yxat bo'sh bo'lsa, post umumiy "klinikaga murojaat qiling" bilan tugaydi.
+#
+# Namuna:
+# - name: "Aliyev Anvar Karimovich"
+#   specialty: "Kardiolog"
+#   keywords: ["yurak", "qon bosimi", "aritmiya", "xolesterin"]
+#   schedule: "Dush-Juma, 9:00-16:00"
+#   phone: "+998 90 000 00 00"
+
+doctors:
+  - name: "Jamolxon Igamnazarov"
+    specialty: "Neyroxirurg"
+    keywords: ["umurtqa churrasi", "bosh miya", "orqa miya", "bosh jarohati", "o'sma", "umurtqa operatsiyasi"]
+  - name: "Sherzodjon Abduvaitov"
+    specialty: "Nevropatolog"
+    keywords: ["bosh og'rig'i", "migren", "insult", "bel og'rig'i", "bo'yin og'rig'i", "uyqusizlik", "asab", "qo'l-oyoq uvishishi", "bosh aylanishi"]
+  - name: "Ilyosjon Yigitaliyev"
+    specialty: "Travmatolog"
+    keywords: ["sinish", "chiqish", "lat yeyish", "bo'g'im og'rig'i", "tizza", "sport jarohati", "osteoporoz"]
+  - name: "Alisher Xoldorov"
+    specialty: "Xirurg"
+    keywords: ["appenditsit", "churra", "o't pufagi", "toshlar", "qorin og'rig'i", "varikoz", "jarrohlik"]
+  - name: "Begzod Akramov"
+    specialty: "LOR (quloq-burun-tomoq) shifokori"
+    keywords: ["tomoq og'rig'i", "angina", "sinusit", "gaymorit", "burun bitishi", "quloq og'rig'i", "otit", "allergik rinit", "xurrak"]
+  - name: "Muzaffar Muxammedovich"
+    specialty: "LOR (quloq-burun-tomoq) shifokori"
+    keywords: ["tomoq og'rig'i", "angina", "sinusit", "gaymorit", "burun bitishi", "quloq og'rig'i", "eshitish pasayishi", "adenoid"]
+  - name: "Bahodir Vahobov"
+    specialty: "Kardiolog"
+    keywords: ["qon bosimi", "gipertoniya", "yurak", "aritmiya", "xolesterin", "yurak xuruji", "ko'krak og'rig'i", "hansirash"]
