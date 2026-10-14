@@ -33,3 +33,11 @@ def test_detects_tripled_letters():
     problems = mechanical_problems("<b>TOMOQ OG'RIG'I ODDDIY SHAMOLLASHMI?</b>")
     assert any("ODDDIY" in p for p in problems)
     assert mechanical_problems("Ishtaha va uyqu") == []
+
+
+def test_audio_script_gets_fixed_phone_ending():
+    from mehrbot.agents.writer import finish_audio_script
+    settings = {"audio_ending": "Qo'ng'iroq qiling: to'qson bir, nol nol nol, nol uch, nol uch."}
+    script = finish_audio_script("Sog'lom bo'ling. Telefon: +998 91 000 03 03.", settings)
+    assert "91 000" not in script
+    assert script.endswith("nol uch, nol uch.")

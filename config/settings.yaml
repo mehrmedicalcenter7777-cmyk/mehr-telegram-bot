@@ -10,7 +10,9 @@ channel_id: "@mehr_medical7"
 channel_name: "MEHR MEDICAL"
 clinic_name: "Mehr Medical Center"
 clinic_phone: "+998 91 000 03 03"
-clinic_address: ""      # masalan: "Toshkent sh., ... ko'chasi, 12"
+clinic_address: ""
+# Audio oxirida doim shu gap o'qiladi (raqam so'z bilan, to'g'ri talaffuz uchun)
+audio_ending: "Mehr Medical Center'ga yozilish uchun qo'ng'iroq qiling: to'qson bir, nol nol nol, nol uch, nol uch."      # masalan: "Toshkent sh., ... ko'chasi, 12"
 
 timezone: "Asia/Tashkent"
 post_times: ["08:00", "12:00"]
