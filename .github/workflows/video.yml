@@ -2,9 +2,9 @@ name: Videolarni tekshirish
 
 on:
   schedule:
-    # Har 15 daqiqada: botga video tashlangan bo'lsa, post yoziladi,
+    # Har 5 daqiqada: botga video tashlangan bo'lsa, post yoziladi,
     # 10 daqiqa adminga ko'rsatiladi va kanalga chiqadi.
-    - cron: "*/15 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 concurrency:

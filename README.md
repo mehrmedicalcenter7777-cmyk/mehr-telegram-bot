@@ -24,18 +24,18 @@ Vaqt jadvali (GitHub Actions, `.github/workflows/post.yml`):
 
 ## Video postlar
 
-Botga video yuboring (20 MB gacha, izoh ixtiyoriy). Har 15 daqiqada ishlaydigan
+Botga video yuboring (20 MB gacha, izoh ixtiyoriy). Har 5 daqiqada ishlaydigan
 `.github/workflows/video.yml` videoni Gemini'ga ko'rsatadi, uning tagiga uslubdagi post yozadi
 va sifat nazoratidan o'tkazadi. Keyin postni adminga **🔄 Qayta ishlash** va **✅ Hozir chiqarish**
 tugmalari bilan yuboradi. Hech narsa bosilmasa, 10 daqiqadan keyin kanalga chiqadi.
 
-Har 15 daqiqalik tekshiruv oyiga ~3000 daqiqa sarflaydi. Shuning uchun repozitoriya **public**
+Har 5 daqiqalik tekshiruv oyiga ~9000 daqiqa sarflaydi. Shuning uchun repozitoriya **public**
 bo'lishi kerak: ochiq repozitoriyada GitHub Actions bepul va cheksiz. Secret'lar baribir hech kimga
 ko'rinmaydi.
 
 ## Botga buyruqlar
 
-Botga oddiy o'zbekcha yozing, Gemini buyruqni tushunadi (15 daqiqa ichida):
+Botga oddiy o'zbekcha yozing, Gemini buyruqni tushunadi (5 daqiqa ichida):
 
 - *Hozir diabet haqida post chiqar*: post yozadi, 10 daqiqa ko'rsatadi, chiqaradi
 - *Ertangi postlar gripp haqida bo'lsin*: keyingi kunlik postlar mavzusi
