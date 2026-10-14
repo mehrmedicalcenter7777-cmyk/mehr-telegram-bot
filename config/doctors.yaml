@@ -1,0 +1,12 @@
+# Mehr Medical Center shifokorlari.
+# Post mavzusiga mos shifokor shu ro'yxatdan tanlanadi.
+# Ro'yxat bo'sh bo'lsa, post umumiy "klinikaga murojaat qiling" bilan tugaydi.
+#
+# Namuna:
+# - name: "Aliyev Anvar Karimovich"
+#   specialty: "Kardiolog"
+#   keywords: ["yurak", "qon bosimi", "aritmiya", "xolesterin"]
+#   schedule: "Dush-Juma, 9:00-16:00"
+#   phone: "+998 90 000 00 00"
+
+doctors: []

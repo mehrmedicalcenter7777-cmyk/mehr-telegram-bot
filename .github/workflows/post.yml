@@ -1,0 +1,52 @@
+name: Kanalga post
+
+on:
+  schedule:
+    # Toshkent vaqti = UTC+5. 7:35 va 11:35 da ishga tushadi:
+    # post tayyorlanadi, 7:50/11:50 da adminga yuboriladi, 8:00/12:00 da kanalga chiqadi.
+    - cron: "35 2 * * *"
+    - cron: "35 6 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "test = faqat menga yuborish, now = darhol kanalga, chat_id = ADMIN_CHAT_ID ni topish"
+        type: choice
+        default: test
+        options: [test, now, chat_id, scheduled]
+
+concurrency:
+  group: kanal-post
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Post tayyorlash va chiqarish
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          ADMIN_CHAT_ID: ${{ secrets.ADMIN_CHAT_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
+        run: python -m mehrbot.main --mode "${{ inputs.mode || 'scheduled' }}"
+      - name: Mavzular tarixini saqlash
+        if: success() && (inputs.mode == '' || inputs.mode == 'scheduled' || inputs.mode == 'now')
+        run: |
+          git config user.name "mehr-bot"
+          git config user.email "mehr-bot@users.noreply.github.com"
+          git add data/history.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Post tarixi yangilandi"
+          for i in 1 2 3; do git pull --rebase && git push && exit 0; sleep 5; done
+          exit 1

@@ -1,0 +1,31 @@
+# Mehr Medical Center: Telegram kanal sozlamalari
+
+# Rubrika: har bir post shu mavzu doirasida bo'ladi
+rubric: >
+  Tibbiyot bo'yicha foydali faktlar va maslahatlar: kasallik belgilari,
+  oldini olish, qachon va qaysi mutaxassisga murojaat qilish kerakligi,
+  hamda Mehr Medical Center shifokorlarini tavsiya qilish.
+
+channel_id: "@mehr_medical7"
+channel_name: "MEHR MEDICAL"
+clinic_name: "Mehr Medical Center"
+clinic_phone: ""        # masalan: "+998 90 123 45 67"
+clinic_address: ""      # masalan: "Toshkent sh., ... ko'chasi, 12"
+
+timezone: "Asia/Tashkent"
+post_times: ["08:00", "12:00"]
+preview_minutes_before: 10
+
+language: "o'zbek tili, lotin yozuvi"
+
+models:
+  text: "gemini-2.5-flash"
+  image: "gemini-2.5-flash-image"   # "Nano Banana"
+  image_aspect_ratio: "4:5"
+
+elevenlabs:
+  model_id: "eleven_v3"
+  output_format: "mp3_44100_128"
+
+# Bir mavzu takrorlanmasligi uchun nechta oldingi post eslab qolinadi
+history_size: 120
