@@ -6,18 +6,27 @@ SYSTEM = (
 )
 
 
-def find_topics(llm, settings: dict, doctors: list, past_titles: list[str], today: str, count: int = 5) -> list[dict]:
-    specialties = sorted({d.get("specialty", "") for d in doctors if d.get("specialty")})
-    specialty_line = (
-        f"Mavzular imkon qadar quyidagi mutaxassisliklarga mos bo'lsin: {', '.join(specialties)}."
-        if specialties else ""
-    )
+def find_topics(llm, settings: dict, doctors: list, past_titles: list[str], today: str,
+                count: int = 5, doctor: dict | None = None) -> list[dict]:
+    if doctor:
+        specialty_line = (
+            f"Barcha mavzular faqat {doctor.get('specialty')} ({doctor.get('name')}) yo'nalishiga oid bo'lsin "
+            f"(kalit so'zlar: {', '.join(doctor.get('keywords') or [])}). Mavzular bir-biridan "
+            "va avvalgilaridan butunlay farq qilsin: turli kasalliklar, belgilar, profilaktika, "
+            "afsonalar, qachon shifokorga borish kerakligi va h.k."
+        )
+    else:
+        specialties = sorted({d.get("specialty", "") for d in doctors if d.get("specialty")})
+        specialty_line = (
+            f"Mavzular imkon qadar quyidagi mutaxassisliklarga mos bo'lsin: {', '.join(specialties)}."
+            if specialties else ""
+        )
     past = "\n".join(f"- {t}" for t in past_titles[-60:]) or "- (hali yo'q)"
     prompt = f"""Bugun: {today}. Rubrika:
 {settings['rubric']}
 
 {specialty_line}
-Mavsumga, yaqin kunlardagi sog'liq kunlariga (JSST kalendari) va O'zbekistondagi dolzarb
+Mavsumga (lekin har doim faqat mavsumiy mavzu bo'lmasin), yaqin kunlardagi sog'liq kunlariga (JSST kalendari) va O'zbekistondagi dolzarb
 muammolarga e'tibor bering. Quyidagi mavzular avval yoritilgan, ularni takrorlamang:
 {past}
 

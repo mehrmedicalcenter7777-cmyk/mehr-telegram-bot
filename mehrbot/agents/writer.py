@@ -22,8 +22,10 @@ def _doctor_block(settings: dict, doctors: list) -> str:
 
 def write_post(llm, settings: dict, style: str, doctors: list, topic: dict, feedback: str = "") -> dict:
     fix = f"\n\nOldingi variant sifat nazoratidan o'tmadi. Tuzating:\n{feedback}" if feedback else ""
+    must = (f"\nPostdagi shifokor albatta: {topic['doctor']} ({topic.get('specialty', '')}). "
+            "Boshqa shifokorni tanlamang.\n") if topic.get("doctor") else ""
     prompt = f"""Mavzu: {json.dumps(topic, ensure_ascii=False)}
-
+{must}
 Uslub qo'llanmasi:
 {style}
 

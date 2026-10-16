@@ -32,6 +32,7 @@ class TopicQueue:
     used: list = field(default_factory=list)
     queue: list = field(default_factory=list)
     fixed: str = ""  # admin-chosen topic: every variant is about it
+    doctors_tried: list = field(default_factory=list)
 
     def next(self) -> dict:
         if self.fixed:
@@ -39,13 +40,43 @@ class TopicQueue:
             self.used.append(self.fixed)
             return {"topic": self.fixed, "angle": angle}
         if not self.queue:
-            past = [p.get("title", "") for p in history.load()] + self.used
-            self.queue = researcher.find_topics(self.llm, self.cfg.settings, self.cfg.doctors, past, self.today)
+            posts = history.load()
+            past = [p.get("title", "") for p in posts] + [p.get("topic", "") for p in posts] + self.used
+            doctor = pick_doctor(self.cfg.doctors, posts, self.doctors_tried)
+            if doctor:
+                self.doctors_tried.append(doctor["name"])
+            self.queue = researcher.find_topics(
+                self.llm, self.cfg.settings, self.cfg.doctors, past, self.today, count=3, doctor=doctor)
+            if doctor:
+                for t in self.queue:
+                    t["doctor"] = doctor["name"]
+                    t["specialty"] = doctor.get("specialty", "")
             if not self.queue:
                 raise RuntimeError("Mavzu topilmadi")
         topic = self.queue.pop(0)
         self.used.append(topic["topic"])
+        # A rewrite of a failed topic goes to a different doctor next time.
+        self.queue = []
         return topic
+
+
+def pick_doctor(doctors: list, posts: list, exclude: list = ()) -> dict | None:
+    """The doctor whose last post is oldest (never featured comes first), so every doctor
+    gets a turn instead of the same two again and again."""
+    candidates = [d for d in doctors if d.get("name") and d["name"] not in exclude] or \
+        [d for d in doctors if d.get("name")]
+    if not candidates:
+        return None
+    last = {}
+    for i, p in enumerate(posts):
+        if p.get("doctor"):
+            last[p["doctor"]] = i
+    # Two doctors of the same specialty share a turn, so the specialty rotates too.
+    spec_last = {}
+    for d in doctors:
+        if d.get("name") in last:
+            spec_last[d.get("specialty")] = max(spec_last.get(d.get("specialty"), -1), last[d["name"]])
+    return min(candidates, key=lambda d: (spec_last.get(d.get("specialty"), -1), last.get(d["name"], -1)))
 
 
 def build(llm, cfg, topics: TopicQueue, log=print) -> Post:

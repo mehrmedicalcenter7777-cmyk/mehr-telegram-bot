@@ -120,7 +120,7 @@ def test_regenerate_uses_new_topic(monkeypatch, tmp_path):
     tg = run(monkeypatch, tmp_path, presses=1)
     previews = [s for s in tg.sent if s[1] == "42" and s[0] == "photo"]
     assert len(previews) == 2
-    assert history.load()[0]["topic"] == "Mavzu 1-1"
+    assert history.load()[0]["topic"] == "Mavzu 2-0"  # regenerate asks for a fresh topic (next doctor)
 
 
 def test_video_from_admin_is_posted(monkeypatch, tmp_path):
