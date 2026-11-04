@@ -25,3 +25,10 @@ def test_rotates_through_everyone():
 
 def test_exclude_skips_doctor_tried_in_this_run():
     assert pick_doctor(DOCTORS, [], exclude=["A"])["name"] != "A"
+
+
+def test_voices_take_turns():
+    from mehrbot.pipeline import pick_voice
+    el = {"voice_id": "", "extra_voices": ["B"]}
+    assert [pick_voice(el, "A", n) for n in range(4)] == ["A", "B", "A", "B"]
+    assert pick_voice({"voice_id": ""}, "A", 5) == "A"

@@ -61,6 +61,12 @@ class TopicQueue:
         return topic
 
 
+def pick_voice(el: dict, secret_voice: str, published: int) -> str:
+    """Voices take turns post by post; the secret VOCIE_ID is the first voice."""
+    voices = [v for v in [el.get("voice_id") or secret_voice, *(el.get("extra_voices") or [])] if v]
+    return voices[published % len(voices)] if voices else ""
+
+
 def pick_doctor(doctors: list, posts: list, exclude: list = ()) -> dict | None:
     """The doctor whose last post is oldest (never featured comes first), so every doctor
     gets a turn instead of the same two again and again."""
@@ -104,7 +110,7 @@ def build(llm, cfg, topics: TopicQueue, log=print) -> Post:
         audio, warning = None, ""
         try:
             audio = narrator.make_audio(
-                cfg.secrets.elevenlabs_api_key, el.get("voice_id") or cfg.secrets.elevenlabs_voice_id,
+                cfg.secrets.elevenlabs_api_key, pick_voice(el, cfg.secrets.elevenlabs_voice_id, len(history.load())),
                 draft["audio_script"], el["model_id"], el["output_format"],
             )
             log(f"[4] Audio tayyor ({len(audio) // 1024} KB)")

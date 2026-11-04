@@ -38,6 +38,7 @@ elevenlabs:
   #   Sarah  EXAVITQu4vr4xnSDxMaL (ayol)   Brian  nPczCjzI2devNBz1zQrb (erkak)
   #   Alice  Xb7hH8MSUJpSbSDYk0k2 (ayol)   George JBFqnCBsd6RMkjVDRZzb (erkak)
   voice_id: ""   # bo'sh = GitHub Secret VOCIE_ID dagi ovoz ishlatiladi
+  extra_voices: []   # qo'shimcha ovozlar: postlar navbat bilan har xil ovozda chiqadi
   model_id: "eleven_v3"
   output_format: "mp3_44100_128"
 
