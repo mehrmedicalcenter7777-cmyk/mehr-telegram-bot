@@ -7,7 +7,9 @@ from . import card
 
 STYLE = (
     "Clean, modern, friendly medical illustration for a clinic's social media post. "
-    "Soft natural light, calm palette with white, teal and warm accents, high detail, "
+    "Soft natural light, warm premium palette of cream, beige, soft brown and gold accents "
+    "(the clinic's brand colours), high detail. Keep the main subject in the upper two thirds; "
+    "the bottom third is covered by a caption band. "
     "realistic but approachable. Absolutely no text, letters, numbers, logos or watermarks "
     "in the image. No gore, no needles close-up, nothing frightening."
 )

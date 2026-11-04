@@ -7,27 +7,35 @@
 #   specialty: "Kardiolog"
 #   keywords: ["yurak", "qon bosimi", "aritmiya", "xolesterin"]
 #   schedule: "Dush-Juma, 9:00-16:00"
+#   photo: "assets/doctors/aliyev.jpg"   # yuz rasmi (kvadrat), postda doira ichida chiqadi
 #   phone: "+998 90 000 00 00"
 
 doctors:
   - name: "Jamolxon Igamnazarov"
+    photo: "assets/doctors/igamnazarov.jpg"
     specialty: "Neyroxirurg"
     keywords: ["umurtqa churrasi", "bosh miya", "orqa miya", "bosh jarohati", "o'sma", "umurtqa operatsiyasi"]
   - name: "Sherzodjon Abduvaitov"
+    photo: "assets/doctors/abduvaitov.jpg"
     specialty: "Nevropatolog"
     keywords: ["bosh og'rig'i", "migren", "insult", "bel og'rig'i", "bo'yin og'rig'i", "uyqusizlik", "asab", "qo'l-oyoq uvishishi", "bosh aylanishi"]
   - name: "Ilyosjon Yigitaliyev"
+    photo: "assets/doctors/yigitaliyev.jpg"
     specialty: "Travmatolog"
     keywords: ["sinish", "chiqish", "lat yeyish", "bo'g'im og'rig'i", "tizza", "sport jarohati", "osteoporoz"]
   - name: "Alisher Xoldorov"
+    photo: "assets/doctors/xoldorov.jpg"
     specialty: "Xirurg"
     keywords: ["appenditsit", "churra", "o't pufagi", "toshlar", "qorin og'rig'i", "varikoz", "jarrohlik"]
   - name: "Begzod Akramov"
+    photo: "assets/doctors/akramov.jpg"
     specialty: "LOR (quloq-burun-tomoq) shifokori"
     keywords: ["tomoq og'rig'i", "angina", "sinusit", "gaymorit", "burun bitishi", "quloq og'rig'i", "otit", "allergik rinit", "xurrak"]
   - name: "Muzaffar Muxammedovich"
+    photo: "assets/doctors/muxammedovich.jpg"
     specialty: "LOR (quloq-burun-tomoq) shifokori"
     keywords: ["tomoq og'rig'i", "angina", "sinusit", "gaymorit", "burun bitishi", "quloq og'rig'i", "eshitish pasayishi", "adenoid"]
   - name: "Bahodir Vahobov"
+    photo: "assets/doctors/vahobov.jpg"
     specialty: "Kardiolog"
     keywords: ["qon bosimi", "gipertoniya", "yurak", "aritmiya", "xolesterin", "yurak xuruji", "ko'krak og'rig'i", "hansirash"]

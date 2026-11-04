@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFont, PngImagePlugin
 
 WIDTH, HEIGHT = 1080, 1350
 CARD_MARK = "mehr-card"
-TOP, BOTTOM = (10, 122, 128), (6, 66, 92)
+TOP, BOTTOM = (122, 92, 66), (40, 28, 20)  # Mehr brown
 FONT_DIRS = [Path("/usr/share/fonts/truetype/dejavu"), Path("/usr/share/fonts/dejavu")]
 
 
@@ -26,43 +26,31 @@ def _centered(draw, y: int, text: str, font, fill) -> int:
     return y + (bottom - top)
 
 
-def make_card(title: str, specialty: str, doctor: str, clinic: str, phone: str) -> bytes:
+def make_card(title: str, specialty: str = "", doctor: str = "", clinic: str = "", phone: str = "") -> bytes:
+    """Brown-gold background with the title in the middle; the logo and the doctor are added
+    on top by the branding layer, like on every other post picture."""
     image = Image.new("RGB", (WIDTH, HEIGHT))
     draw = ImageDraw.Draw(image)
     for y in range(HEIGHT):
         t = y / HEIGHT
         draw.line([(0, y), (WIDTH, y)], fill=tuple(int(a + (b - a) * t) for a, b in zip(TOP, BOTTOM)))
 
-    # soft decorative circles
     overlay = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay)
-    od.ellipse((-260, -260, 420, 420), fill=(255, 255, 255, 22))
-    od.ellipse((700, 980, 1400, 1680), fill=(255, 255, 255, 18))
+    od.ellipse((560, -300, 1400, 540), outline=(236, 214, 160, 70), width=6)
+    od.ellipse((-300, 640, 420, 1360), outline=(236, 214, 160, 45), width=6)
     image = Image.alpha_composite(image.convert("RGBA"), overlay).convert("RGB")
     draw = ImageDraw.Draw(image)
 
-    y = _centered(draw, 110, clinic.upper(), _font(40, bold=True), (255, 255, 255)) + 20
-    draw.line([(WIDTH / 2 - 60, y + 10), (WIDTH / 2 + 60, y + 10)], fill=(255, 196, 120), width=5)
-
-    title_font = _font(78, bold=True)
+    title_font = _font(80, bold=True)
     lines = textwrap.wrap(title.upper(), width=16)[:5]
-    y = 520 - len(lines) * 50
+    y = 480 - len(lines) * 50
     for line in lines:
         y = _centered(draw, y, line, title_font, (255, 255, 255)) + 24
-
-    panel_top = 1010
-    draw.rounded_rectangle((90, panel_top, WIDTH - 90, panel_top + 220), radius=36, fill=(255, 255, 255))
-    y = panel_top + 34
-    if doctor:
-        y = _centered(draw, y, specialty, _font(36), (10, 122, 128)) + 18
-        y = _centered(draw, y, doctor, _font(46, bold=True), (20, 40, 50)) + 22
-    else:
-        y = _centered(draw, y + 30, "Mutaxassislarimiz yordam beradi", _font(40, bold=True), (20, 40, 50)) + 40
-    if phone:
-        _centered(draw, y, phone, _font(38, bold=True), (6, 66, 92))
+    draw.line([(WIDTH / 2 - 70, y + 16), (WIDTH / 2 + 70, y + 16)], fill=(236, 214, 160), width=6)
 
     buffer = io.BytesIO()
     info = PngImagePlugin.PngInfo()
-    info.add_text(CARD_MARK, "1")  # lets the video step see the title is already drawn
+    info.add_text(CARD_MARK, "1")  # the title is already drawn, the branding layer skips it
     image.save(buffer, format="PNG", optimize=True, pnginfo=info)
     return buffer.getvalue()

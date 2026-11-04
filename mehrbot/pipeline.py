@@ -1,9 +1,12 @@
 """Runs agents 1-5 and returns a post that passed quality control."""
 
+import io
 from dataclasses import dataclass, field
 
-from . import history
-from .agents import clip, illustrator, narrator, researcher, reviewer, video_writer, writer
+from PIL import Image
+
+from . import brand, history
+from .agents import card, clip, illustrator, narrator, researcher, reviewer, video_writer, writer
 
 MAX_REWRITES = 3
 
@@ -118,17 +121,23 @@ def build(llm, cfg, topics: TopicQueue, log=print) -> Post:
             # A missing voice-over shouldn't stop the post; the admin is told why.
             warning = f"Audio tayyorlanmadi: {str(error)[:300]}"
             log(f"[4] {warning}")
+        doctor = next((d for d in cfg.doctors if d.get("name") == draft.get("doctor")), None)
+        phone = cfg.settings.get("clinic_phone", "")
+        show_title = card.CARD_MARK not in _png_info(image)  # a clinic card already shows the title
         clip_bytes = None
         if audio and cfg.settings.get("post_format", "photo") == "video":
             try:
-                spec = next((d.get("specialty", "") for d in cfg.doctors if d.get("name") == draft.get("doctor")), "")
-                clip_bytes = clip.make_clip(image, audio, draft.get("title", ""), draft.get("doctor", ""), spec,
-                                            cfg.settings["clinic_name"], cfg.settings.get("clinic_phone", ""))
+                layer = brand.overlay(draft.get("title", ""), doctor, phone, show_title)
+                clip_bytes = clip.make_clip(image, audio, layer)
                 log(f"[4] Video tayyor ({len(clip_bytes) // 1024} KB)")
             except Exception as error:
                 # Without a video the post still goes out as image + audio.
                 warning = f"Video yasalmadi, rasm va audio yuboriladi: {str(error)[:200]}"
                 log(f"[4] {warning}")
+        try:
+            image = brand.still(image, draft.get("title", ""), doctor, phone, show_title)
+        except Exception as error:
+            log(f"[3] Logo va shifokor rasmi qo'shilmadi: {str(error)[:200]}")
         return Post(
             topic=topic, title=draft.get("title", ""), html=draft["post_html"],
             audio_script=draft["audio_script"], doctor=draft.get("doctor", ""),
@@ -159,3 +168,10 @@ def build_video(llm, cfg, tg, item: dict, log=print) -> Post:
         html=draft["post_html"], audio_script="", doctor=draft.get("doctor", ""), sources=[],
         image=None, audio=None, kind="video", video_file_id=item["file_id"],
     )
+
+
+def _png_info(image: bytes) -> dict:
+    try:
+        return Image.open(io.BytesIO(image)).info
+    except Exception:
+        return {}
