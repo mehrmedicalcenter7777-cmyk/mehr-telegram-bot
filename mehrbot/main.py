@@ -111,11 +111,11 @@ def review_window(tg, llm, cfg, post, publish_at: datetime, offset: int, rebuild
     return post, notice
 
 
-def run_scheduled(cfg, llm, tg, slot_override: str | None) -> int:
+def run_scheduled(cfg, llm, tg, slot_override: str | None, slot_date=None) -> int:
     tz = ZoneInfo(cfg.settings["timezone"])
     now = datetime.now(tz)
     if slot_override:
-        slot = datetime.combine(now.date(), schedule.parse_time(slot_override), tzinfo=tz)
+        slot = datetime.combine(slot_date or now.date(), schedule.parse_time(slot_override), tzinfo=tz)
     else:
         slot = schedule.pick_slot(now, cfg.settings["post_times"])
     if not slot:
@@ -283,7 +283,8 @@ def probe_models() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", default="scheduled", choices=["scheduled", "test", "now", "videos", "chat_id", "models", "probe"])
+    parser.add_argument("--mode", default="scheduled", choices=["scheduled", "test", "now", "videos", "serve", "chat_id", "models", "probe"])
+    parser.add_argument("--max-minutes", type=int, help="serve: shuncha daqiqadan keyin to'xtash")
     parser.add_argument("--slot", help="post vaqtini majburan berish, masalan 08:00")
     args = parser.parse_args()
 
@@ -304,6 +305,9 @@ def main() -> int:
             return run_scheduled(cfg, llm, tg, args.slot)
         if args.mode == "videos":
             return run_inbox(cfg, llm, tg)
+        if args.mode == "serve":
+            from .serve import serve
+            return serve(cfg, llm, tg, log, args.max_minutes)
         return run_once(cfg, llm, tg, to_channel=args.mode == "now")
     except Exception as error:
         log(f"XATO: {error!r}")

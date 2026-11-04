@@ -8,7 +8,8 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_DIR = ROOT / "config"
-DATA_DIR = ROOT / "data"
+# On the server the data lives outside the code folder, so updates never touch it.
+DATA_DIR = Path(os.environ.get("MEHR_DATA_DIR") or ROOT / "data")
 
 
 @dataclass

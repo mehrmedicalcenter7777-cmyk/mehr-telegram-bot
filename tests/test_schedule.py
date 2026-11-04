@@ -38,3 +38,16 @@ def test_plan_late_run_keeps_review_window():
     assert preview == at(7, 58) and publish == at(8, 3)
     preview, publish = plan(at(8, 20), at(8, 0), 10)
     assert publish - preview == timedelta(minutes=5)
+
+
+def test_server_starts_slot_25_minutes_early_once():
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    from mehrbot.serve import due_slot
+    tz = ZoneInfo("Asia/Tashkent")
+    times = ["08:00", "12:00"]
+    assert due_slot(datetime(2026, 11, 5, 7, 30, tzinfo=tz), times, []) is None
+    slot = due_slot(datetime(2026, 11, 5, 7, 36, tzinfo=tz), times, [])
+    assert slot == datetime(2026, 11, 5, 8, 0, tzinfo=tz)
+    assert due_slot(datetime(2026, 11, 5, 7, 40, tzinfo=tz), times, ["2026-11-05 08:00"]) is None
+    assert due_slot(datetime(2026, 11, 5, 9, 30, tzinfo=tz), times, []) is None

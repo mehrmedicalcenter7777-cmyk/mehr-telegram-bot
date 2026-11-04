@@ -1,23 +1,26 @@
-name: Videolarni tekshirish
+name: Bot (doim yoniq)
 
+# Bot shu yerda doim ishlab turadi: buyruq va videolarga bir necha soniyada javob beradi,
+# 8:00 va 12:00 dagi postlarni tayyorlab chiqaradi. GitHub bitta ishni 6 soatgacha ishlatadi,
+# shuning uchun bot ~5.5 soatda to'xtaydi va navbatda turgan keyingi ish darhol davom ettiradi.
+# Har 30 daqiqalik jadval navbatda doim bitta ish turishini ta'minlaydi.
 on:
   schedule:
-    # Har 5 daqiqada: botga video tashlangan bo'lsa, post yoziladi,
-    # 10 daqiqa adminga ko'rsatiladi va kanalga chiqadi.
-    - cron: "*/5 * * * *"
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 concurrency:
-  group: kanal-post
+  group: bot-doim-yoniq
   cancel-in-progress: false
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
-  videos:
+  bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,14 +30,20 @@ jobs:
       - run: pip install -r requirements.txt
       - name: ffmpeg (video uchun)
         run: which ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
-      - name: Videoni tekshirish va chiqarish
+      - name: Botni ishga tushirish
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_API }}
           ADMIN_CHAT_ID: ${{ secrets.ADMIN_CHAT_ID }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVEN_LABS_API }}
           ELEVENLABS_VOICE_ID: ${{ secrets.VOCIE_ID }}
-        run: python -m mehrbot.main --mode videos
+          MEHR_SAVE_CMD: scripts/save_data.sh
+        run: python -m mehrbot.main --mode serve --max-minutes 320
       - name: Ma'lumotlarni saqlash
-        if: success()
+        if: always()
         run: scripts/save_data.sh
+      - name: Keyingi ishni navbatga qo'yish
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run bot.yml --ref main || true
