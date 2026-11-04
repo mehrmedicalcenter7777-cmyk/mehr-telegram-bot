@@ -10,12 +10,19 @@ SYSTEM = (
 )
 
 
+AUDIO_MAX_CHARS = 520
+
+
 def review(llm, settings: dict, style: str, doctors: list, post: dict) -> list[str]:
     """Returns a list of problems; an empty list means the post is approved."""
     problems = mechanical_problems(post.get("post_html", ""))
     is_video = post.get("kind") == "video"
     if not is_video and not post.get("audio_script"):
         problems.append("Audio matni yo'q")
+    # ElevenLabs Starter gives 30k characters a month: ~500 per post keeps 60 posts within it.
+    if not is_video and len(post.get("audio_script", "")) > AUDIO_MAX_CHARS:
+        problems.append(f"Audio matni juda uzun ({len(post['audio_script'])} belgi), "
+                        f"{AUDIO_MAX_CHARS} belgigacha qisqartiring")
 
     names = {d.get("name") for d in doctors}
     if post.get("doctor") and post["doctor"] not in names:

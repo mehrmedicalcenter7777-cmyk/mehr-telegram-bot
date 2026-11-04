@@ -38,7 +38,7 @@ Avval internetdan mavzu bo'yicha aniq faktlar va amaliy maslahatni toping, keyin
 Faqat JSON obyekt qaytaring:
 {{"title": "sarlavha (oddiy matn)",
   "post_html": "Telegram HTML formatidagi to'liq post (faqat <b>, <i>, <u>, <a> teglari; yangi qator uchun \\n)",
-  "audio_script": "post mazmunini ovozda aytish uchun 60-90 so'zli matn: emoji, teg, qavs va qisqartmalarsiz, raqamlar so'z bilan; telefon raqamini YOZMANG, uni dastur o'zi qo'shadi",
+  "audio_script": "post mazmunini ovozda aytish uchun 40-55 so'zli qisqa matn (400 belgidan oshmasin): emoji, teg, qavs va qisqartmalarsiz, raqamlar so'z bilan; telefon raqamini YOZMANG, uni dastur o'zi qo'shadi",
   "image_prompt": "rasm uchun ingliz tilidagi batafsil tavsif (mavzu, sahna, kayfiyat)",
   "doctor": "tanlangan shifokor ismi yoki bo'sh",
   "sources": ["foydalanilgan manbalar"]}}"""
