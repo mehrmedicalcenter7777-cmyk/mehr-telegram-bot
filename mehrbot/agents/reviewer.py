@@ -33,6 +33,8 @@ def review(llm, settings: dict, style: str, doctors: list, post: dict) -> list[s
 
 Klinika shifokorlari: {json.dumps(doctors, ensure_ascii=False)}
 
+Sarlavha (rasm va videoda katta harflar bilan chiqadi): {post.get('title')}
+
 Post (Telegram HTML):
 {post.get('post_html')}
 
@@ -40,7 +42,8 @@ Post (Telegram HTML):
 
 Tekshiring:
 1. Tibbiy faktlar to'g'rimi, xavfli yoki noto'g'ri maslahat yo'qmi (dori dozasi, o'z-o'zini davolash)?
-2. O'zbek tili grammatikasi va imlosi to'g'rimi, faqat lotin yozuvimi?
+2. O'zbek tili grammatikasi va imlosi to'g'rimi, faqat lotin yozuvimi? Sarlavha ham ma'noli,
+   imlo xatosiz va post sarlavhasiga mosmi (buzilgan yoki ma'nosiz so'zlar bo'lsa rad eting)?
 3. Uslub qo'llanmasidagi tuzilishga mosmi (sarlavha, 🔹 qatorlar, shifokor, ogohlantirish, imzo)?
 4. Tavsiya qilingan mutaxassis mavzuga mosmi?
 5. {"Post video mazmuniga mosmi?" if is_video else "Audio matni postga mos va ovozda o'qishga qulaymi?"}
