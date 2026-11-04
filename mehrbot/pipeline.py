@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 
 from . import history
-from .agents import illustrator, narrator, researcher, reviewer, video_writer, writer
+from .agents import clip, illustrator, narrator, researcher, reviewer, video_writer, writer
 
 MAX_REWRITES = 3
 
@@ -21,6 +21,7 @@ class Post:
     warning: str = ""
     kind: str = "photo"
     video_file_id: str = ""
+    clip: bytes | None = None  # image + voice-over rendered as one video
 
 
 @dataclass
@@ -111,10 +112,21 @@ def build(llm, cfg, topics: TopicQueue, log=print) -> Post:
             # A missing voice-over shouldn't stop the post; the admin is told why.
             warning = f"Audio tayyorlanmadi: {str(error)[:300]}"
             log(f"[4] {warning}")
+        clip_bytes = None
+        if audio and cfg.settings.get("post_format", "photo") == "video":
+            try:
+                spec = next((d.get("specialty", "") for d in cfg.doctors if d.get("name") == draft.get("doctor")), "")
+                clip_bytes = clip.make_clip(image, audio, draft.get("title", ""), draft.get("doctor", ""), spec,
+                                            cfg.settings["clinic_name"], cfg.settings.get("clinic_phone", ""))
+                log(f"[4] Video tayyor ({len(clip_bytes) // 1024} KB)")
+            except Exception as error:
+                # Without a video the post still goes out as image + audio.
+                warning = f"Video yasalmadi, rasm va audio yuboriladi: {str(error)[:200]}"
+                log(f"[4] {warning}")
         return Post(
             topic=topic, title=draft.get("title", ""), html=draft["post_html"],
             audio_script=draft["audio_script"], doctor=draft.get("doctor", ""),
-            sources=draft.get("sources") or [], image=image, audio=audio, warning=warning,
+            sources=draft.get("sources") or [], image=image, audio=audio, warning=warning, clip=clip_bytes,
         )
     raise RuntimeError("3 ta mavzu bo'yicha ham sifat nazoratidan o'tgan post tayyorlanmadi")
 

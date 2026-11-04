@@ -23,6 +23,7 @@ language: "o'zbek tili, lotin yozuvi"
 # Gemini to'lovsiz (bepul) kalitda internet qidiruvi va AI rasm ishlamaydi.
 # Bunday holda dastur o'zi qidiruvsiz yozadi va rasm o'rniga klinika kartasini chizadi.
 web_search: true
+post_format: "video"     # "video" = rasm+ovoz+yozuvdan video, "photo" = rasm va alohida audio
 image_mode: "ai"         # "ai" = Nano Banana rasmi, "card" = doim klinika kartasi
 
 models:

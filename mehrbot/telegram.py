@@ -54,10 +54,15 @@ class Telegram:
             timeout=120,
         )
 
-    def send_video(self, chat_id, file_id: str, caption: str, buttons=None):
-        data = {"chat_id": chat_id, "video": file_id, "caption": caption, "parse_mode": "HTML"}
+    def send_video(self, chat_id, video: str | bytes, caption: str, buttons=None):
+        """video is a Telegram file_id, or the mp4 bytes to upload."""
+        data = {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"}
         if buttons:
             data["reply_markup"] = self._markup(buttons)
+        if isinstance(video, bytes):
+            data.update(width=1080, height=1350, supports_streaming="true")
+            return self.call("sendVideo", data, files={"video": ("post.mp4", video, "video/mp4")}, timeout=300)
+        data["video"] = video
         return self.call("sendVideo", data)
 
     def download(self, file_id: str) -> bytes:

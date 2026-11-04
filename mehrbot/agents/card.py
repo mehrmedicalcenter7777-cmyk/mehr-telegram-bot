@@ -4,9 +4,10 @@ import io
 import textwrap
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, PngImagePlugin
 
 WIDTH, HEIGHT = 1080, 1350
+CARD_MARK = "mehr-card"
 TOP, BOTTOM = (10, 122, 128), (6, 66, 92)
 FONT_DIRS = [Path("/usr/share/fonts/truetype/dejavu"), Path("/usr/share/fonts/dejavu")]
 
@@ -61,5 +62,7 @@ def make_card(title: str, specialty: str, doctor: str, clinic: str, phone: str) 
         _centered(draw, y, phone, _font(38, bold=True), (6, 66, 92))
 
     buffer = io.BytesIO()
-    image.save(buffer, format="PNG", optimize=True)
+    info = PngImagePlugin.PngInfo()
+    info.add_text(CARD_MARK, "1")  # lets the video step see the title is already drawn
+    image.save(buffer, format="PNG", optimize=True, pnginfo=info)
     return buffer.getvalue()

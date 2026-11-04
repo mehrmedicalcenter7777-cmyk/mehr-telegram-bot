@@ -34,10 +34,12 @@ def send_preview(tg: Telegram, admin, post, publish_at: datetime | None, token: 
                  allow_now: bool = False):
     if post.kind == "video":
         tg.send_video(admin, post.video_file_id, post.html)
+    elif post.clip:
+        tg.send_video(admin, post.clip, post.html)
     else:
         tg.send_photo(admin, post.image, post.html)
-    if post.audio:
-        tg.send_audio(admin, post.audio, post.title, "Mehr Medical")
+        if post.audio:
+            tg.send_audio(admin, post.audio, post.title, "Mehr Medical")
     sources = "\n".join(f"• {html.escape(str(s))}" for s in post.sources[:5])
     if publish_at:
         text = (f"⏰ Bu post <b>{publish_at:%H:%M}</b> da kanalga avtomatik chiqadi.\n"
@@ -58,6 +60,9 @@ def publish(tg: Telegram, cfg, post) -> None:
     channel = cfg.settings["channel_id"]
     if post.kind == "video":
         tg.send_video(channel, post.video_file_id, post.html)
+        return
+    if post.clip:
+        tg.send_video(channel, post.clip, post.html)
         return
     tg.send_photo(channel, post.image, post.html)
     if post.audio:
